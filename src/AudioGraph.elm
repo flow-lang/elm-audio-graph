@@ -1,5 +1,5 @@
 module AudioGraph exposing
-    ( AudioGraph(..)
+    ( AudioGraph(..), createAudioGraph
     , setNode, getNode, removeNode, addConnection, removeConnection
     , AudioNode(..)
     , NodeID, NodeType(..), AudioParam(..), NodeProperty(..), NodeInput(..)
@@ -30,7 +30,7 @@ module to serialise these graphs into JSON for proper reconstruction in javascri
 
 # Definition
 
-@docs AudioGraph
+@docs AudioGraph, createAudioGraph
 
 
 ## AudioGraph Manipulations
@@ -86,6 +86,24 @@ type AudioGraph
     = AudioGraph
         { nodes : Dict NodeID AudioNode
         , connections : List Connection
+        }
+
+
+{-| The primary method of creating a new [AudioGraph](#AudioGraph). It is empty
+except for the default destination node stored under "\_\_destination" NodeID. This
+typically represents the speaker output of your device.
+
+See [createAudioDestinationNote](#createAudioDestinationNode) for more information.
+
+-}
+createAudioGraph : AudioGraph
+createAudioGraph =
+    AudioGraph
+        { nodes =
+            Dict.fromList
+                [ ( "__destination", createAudioDestinationNode )
+                ]
+        , connections = []
         }
 
 

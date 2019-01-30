@@ -115,9 +115,9 @@ audio graph is where we store all of our audio nodes and keep track
 of how they're connected to each other.
 
 ```elm
-import AudioGraph exposing ( createGraph )
+import AudioGraph exposing ( createAudioGraph )
 
-graph = createGraph
+graph = createAudioGraph
 ```
 
 Well that wasn't exactly Earth-shattering. To actually make some noise
@@ -126,7 +126,7 @@ with a basic sine oscillator that we'll connect to our speakers.
  
 ```elm
 import AudioGraph exposing
-  ( createGraph           -- Creates the audio graph
+  ( createAudioGraph      -- Creates the audio graph
   , createOscillatorNode  -- Creates an oscillator node
   , addNode               -- Adds a node to the graph
   , addConnection         -- Adds a connection to the graph
@@ -135,7 +135,7 @@ import AudioGraph exposing
   )
 
 graph =
-  createGraph
+  createAudioGraph
     |> addNode "myOsc" createOscillatorNode
     |> addConnection (connect "myOsc" 0 "__destination" (InputChannel 0))
 ```

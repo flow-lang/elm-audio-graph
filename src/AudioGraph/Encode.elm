@@ -1,9 +1,13 @@
-module AudioGraph.Encode exposing
-    ( encodeGraph
-    , encodeNode
-    )
+module AudioGraph.Encode exposing (encodeGraph, encodeNode)
 
-{-| -}
+{-| This module exposes the functionality to encode a constructed [AudioGraph](/AudioGraph#AudioGraph)
+into JSON. This is necessary because this package doesn't produce sound itself!
+Instead, typically you will send the serialised graph out through a port and have
+some javascript construct a real Web Audio graph using that data.
+
+@docs encodeGraph, encodeNode
+
+-}
 
 import AudioGraph exposing (..)
 import AudioGraph.Units exposing (..)
@@ -11,7 +15,9 @@ import Dict exposing (Dict)
 import Json.Encode as E exposing (encode)
 
 
-{-| -}
+{-| Encode the entire [AudioGraph](/AudioGraph#AudioGraph) into JSON. This
+is the primary way you will transmit the graph to the outside world.
+-}
 encodeGraph : AudioGraph -> E.Value
 encodeGraph graph =
     case graph of
@@ -28,7 +34,10 @@ encodeGraph graph =
 -----------------------------
 
 
-{-| -}
+{-| This encodes a single [AudioNode](/AudioGraph#AudioNode) into JSON. You typically
+won't need to use this function directly, instead passing a complete graph to [encodeGraph](#encodeGraph)
+however it may be useful in some fringe cases.
+-}
 encodeNode : AudioNode -> E.Value
 encodeNode node =
     case node of

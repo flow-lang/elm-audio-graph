@@ -11,7 +11,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 var MODE =
     process.env.npm_lifecycle_event === "prod" ? "production" : "development";
-var filename = MODE == "production" ? "[name]-[hash].js" : "index.js";
+var filename = MODE == "production" ? "[name].js" : "index.js";
 
 var common = {
     mode: MODE,

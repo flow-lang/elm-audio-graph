@@ -1,14 +1,8 @@
 module AudioGraph exposing
     ( AudioGraph(..)
+    , setNode, getNode, removeNode, addConnection, removeConnection
     , AudioNode(..)
-    , AudioParam(..)
-    , Connection
-    , NodeID
-    , NodeInput(..)
-    , NodeProperty(..)
-    , NodeType(..)
-    , addConnection
-    , connect
+    , NodeID, NodeType(..), AudioParam(..), NodeProperty(..), NodeInput(..)
     , createAnalyserNode
     , createAudioBufferSourceNode
     , createAudioDestinationNode
@@ -25,25 +19,24 @@ module AudioGraph exposing
     , createPannerNode
     , createStereoPannerNode
     , createWaveShaperNode
-    , getNode
-    , removeConnection
-    , removeNode
-    , setNode
-    , updateParam
-    , updateProperty
+    , updateParam, updateProperty
+    , Connection, connect
     )
 
 {-| The AudioGraph module provides methods to construct detailed, type safe, web
 audio processing graphs in Elm. You can then use the [AudioGraph.Encode](/Encode)
 module to serialise these graphs into JSON for proper reconstruction in javascript.
 
+
 # Definition
 
 @docs AudioGraph
 
+
 ## AudioGraph Manipulations
 
 @docs setNode, getNode, removeNode, addConnection, removeConnection
+
 
 # Audio Nodes
 
@@ -51,28 +44,31 @@ module to serialise these graphs into JSON for proper reconstruction in javascri
 
 @docs NodeID, NodeType, AudioParam, NodeProperty, NodeInput
 
+
 ## Audio Node Constructors
 
 @docs createAnalyserNode
-    , createAudioBufferSourceNode
-    , createAudioDestinationNode
-    , createBiquadFilterNode
-    , createChannelMergerNode
-    , createChannelSplitterNode
-    , createConstantSourceNode
-    , createConvolverNode
-    , createDelayNode
-    , createDynamicsCompressorNode
-    , createGainNode
-    , createIIRFilterNode
-    , createOscillatorNode
-    , createPannerNode
-    , createStereoPannerNode
-    , createWaveShaperNode
+@docs createAudioBufferSourceNode
+@docs createAudioDestinationNode
+@docs createBiquadFilterNode
+@docs createChannelMergerNode
+@docs createChannelSplitterNode
+@docs createConstantSourceNode
+@docs createConvolverNode
+@docs createDelayNode
+@docs createDynamicsCompressorNode
+@docs createGainNode
+@docs createIIRFilterNode
+@docs createOscillatorNode
+@docs createPannerNode
+@docs createStereoPannerNode
+@docs createWaveShaperNode
+
 
 ## AudioNode Manipulations
 
 @docs updateParam, updateProperty
+
 
 ## Connecting AudioNodes
 
@@ -168,6 +164,7 @@ See the [NodeInput](#NodeInput) definition for more information.
     -- Connect the output of "oscB" to the frequency param
     -- of "oscA" to perform frequency modulation.
     connect "oscB" 0 "oscA" (InputParam "frequency")
+
 -}
 type alias Connection =
     { outputNode : NodeID
@@ -179,7 +176,7 @@ type alias Connection =
 
 {-| A simple helper function to create a [Connection](#Connection). This is the
 preferred way to construct Connections to avoid breaking API changes if the
-Conncection type alias changes. 
+Conncection type alias changes.
 -}
 connect : NodeID -> Int -> NodeID -> NodeInput -> Connection
 connect outputNode outputChannel inputNode inputDestination =
@@ -208,22 +205,23 @@ compareConnection a b =
 
 {-| AudioNodes are the central focus of an [AudioGraph](#AudioGraph). They represent
 any arbitrary audio processing node in a graph and can have any number of inputs,
-outputs, parameters, and properties. 
+outputs, parameters, and properties.
 
-* NodeType specifies the type of AudioNode. Each type is a 1:1 name
-mapping of its Web Audio counterpart, so you can always refer to the Web Audio
-documentation for more details.
-* Params is a list of audio-rate parameters that the AudioNode exposes. These can
-be modulated by other AudioNodes. See [AudioParam](#AudioParam) for more information.
-* Properties lists an **non**-audio-rate properties of the AudioNode. These include
-properties like oscillator waveform type or filter type. Typically these are set
-once when the node is created. Other AudioNodes *cannot* connect to a NodeProperty.
-* Inputs is a list of all the points another AudioNode can connect to this node. These
-can either be `InputChannel`s that are numbered from 0, or `InputParam`s that expose
-the node's params for connection. See [NodeInput](#NodeInput) for more details.
-* NumOutputs is an integer stating the number of audio outputs the node has. **Note**:
-the Web Audio API treats input/output count and channel count seperately. A node may
-only have one output but may still be stereo.
+  - NodeType specifies the type of AudioNode. Each type is a 1:1 name
+    mapping of its Web Audio counterpart, so you can always refer to the Web Audio
+    documentation for more details.
+  - Params is a list of audio-rate parameters that the AudioNode exposes. These can
+    be modulated by other AudioNodes. See [AudioParam](#AudioParam) for more information.
+  - Properties lists an **non**-audio-rate properties of the AudioNode. These include
+    properties like oscillator waveform type or filter type. Typically these are set
+    once when the node is created. Other AudioNodes _cannot_ connect to a NodeProperty.
+  - Inputs is a list of all the points another AudioNode can connect to this node. These
+    can either be `InputChannel`s that are numbered from 0, or `InputParam`s that expose
+    the node's params for connection. See [NodeInput](#NodeInput) for more details.
+  - NumOutputs is an integer stating the number of audio outputs the node has. **Note**:
+    the Web Audio API treats input/output count and channel count seperately. A node may
+    only have one output but may still be stereo.
+
 -}
 type AudioNode
     = AudioNode
@@ -272,12 +270,14 @@ The follow description is abridged from the Web Audio API docs:
 > usually a parameter of an AudioNode (such as GainNode.gain)
 >
 > There are two kinds of AudioParam, a-rate and k-rate parameters:
-> * An a-rate AudioParam takes the current audio parameter value for each sample frame of the audio signal.
-> * A k-rate AudioParam uses the same initial audio parameter value for the whole block processed, that is 128 sample frames.
+>
+>   - An a-rate AudioParam takes the current audio parameter value for each sample frame of the audio signal.
+>   - A k-rate AudioParam uses the same initial audio parameter value for the whole block processed, that is 128 sample frames.
 
 The distinction between a-rate and k-rate is useful to know when processing audio,
 but does not impact how params are used. All `AudioParam`s can be modulated by
 `AudioNode`s.
+
 -}
 type AudioParam
     = AudioParam
@@ -291,6 +291,7 @@ The key distinction is that NodeProperties **cannot** be modulated by other `Aud
 
 While their values can be updated programmatically, they cannot be continuously
 modulated by an audio signal.
+
 -}
 type NodeProperty
     = NodeProperty
@@ -302,9 +303,10 @@ type NodeProperty
 {-| Every [AudioNode](#AudioNode) can have some number of inputs, and these inputs
 can correspond to a direct audio input channel on the node, or an [AudioParam](#AudioParam).
 
-* InputChannel represents the channel number of an audio input for the node. These
-are zero-indexed.
-* InputParam represents the `label` of the parameter to connect to.
+  - InputChannel represents the channel number of an audio input for the node. These
+    are zero-indexed.
+  - InputParam represents the `label` of the parameter to connect to.
+
 -}
 type NodeInput
     = InputChannel Int
@@ -912,7 +914,6 @@ createStereoPannerNode =
         , numOutputs = 1
         }
 
-
 -}
 createWaveShaperNode : AudioNode
 createWaveShaperNode =
@@ -940,6 +941,7 @@ createWaveShaperNode =
 
 Note: If an [AudioNode](#AudioNode) is connected to this param, `updateParam` will
 have no effect.
+
 -}
 updateParam : String -> Value -> AudioNode -> AudioNode
 updateParam label value node =

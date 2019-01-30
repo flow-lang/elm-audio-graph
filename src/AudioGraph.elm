@@ -1,12 +1,14 @@
-module AudioGraph exposing 
-    ( AudioGraph(..), setNode, getNode, removeNode, addConnection, removeConnection
-    , Connection, connect
-    , AudioNode(..), updateParam, updateProperty
+module AudioGraph exposing
+    ( AudioGraph(..)
+    , AudioNode(..)
     , AudioParam(..)
+    , Connection
     , NodeID
     , NodeInput(..)
     , NodeProperty(..)
     , NodeType(..)
+    , addConnection
+    , connect
     , createAnalyserNode
     , createAudioBufferSourceNode
     , createAudioDestinationNode
@@ -23,6 +25,12 @@ module AudioGraph exposing
     , createPannerNode
     , createStereoPannerNode
     , createWaveShaperNode
+    , getNode
+    , removeConnection
+    , removeNode
+    , setNode
+    , updateParam
+    , updateProperty
     )
 
 {-| -}
@@ -69,7 +77,7 @@ addConnection connection graph =
     case graph of
         AudioGraph g ->
             if List.any (compareConnection connection) g.connections then
-              graph
+                graph
 
             else
                 AudioGraph { g | connections = connection :: g.connections }
@@ -79,7 +87,8 @@ removeConnection : Connection -> AudioGraph -> AudioGraph
 removeConnection connection graph =
     case graph of
         AudioGraph g ->
-            AudioGraph { g | connections = List.filter (\c -> not (compareConnection connection c)) g.connections }       
+            AudioGraph { g | connections = List.filter (\c -> not (compareConnection connection c)) g.connections }
+
 
 
 -----------------------------
@@ -104,10 +113,14 @@ connect outputNode outputChannel inputNode inputDestination =
 
 compareConnection : Connection -> Connection -> Bool
 compareConnection a b =
-      a.outputNode == b.outputNode
-      && a.outputChannel == b.outputChannel
-      && a.inputNode == b.inputNode
-      && compareNodeInput a.inputDestination b.inputDestination
+    a.outputNode
+        == b.outputNode
+        && a.outputChannel
+        == b.outputChannel
+        && a.inputNode
+        == b.inputNode
+        && compareNodeInput a.inputDestination b.inputDestination
+
 
 
 -----------------------------
@@ -147,7 +160,8 @@ type NodeType
 
 
 {-| -}
-type alias NodeID = String
+type alias NodeID =
+    String
 
 
 {-| -}
@@ -174,18 +188,19 @@ type NodeInput
 
 compareNodeInput : NodeInput -> NodeInput -> Bool
 compareNodeInput a b =
-    case (a, b) of
-        (InputChannel _, InputParam _) ->
+    case ( a, b ) of
+        ( InputChannel _, InputParam _ ) ->
             False
 
-        (InputParam _, InputChannel _) ->
+        ( InputParam _, InputChannel _ ) ->
             False
 
-        (InputChannel aChannel, InputChannel bChannel) ->
+        ( InputChannel aChannel, InputChannel bChannel ) ->
             aChannel == bChannel
 
-        (InputParam aParam, InputParam bParam) ->
+        ( InputParam aParam, InputParam bParam ) ->
             aParam == bParam
+
 
 
 -----------------------------

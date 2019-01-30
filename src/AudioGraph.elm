@@ -2,10 +2,10 @@ module AudioGraph exposing
     ( AudioGraph(..), setNode, getNode, removeNode, addConnection, removeConnection
     , Connection, connect
     , AudioNode(..), updateParam, updateProperty
-    , AudioParam
+    , AudioParam(..)
     , NodeID
     , NodeInput(..)
-    , NodeProperty
+    , NodeProperty(..)
     , NodeType(..)
     , createAnalyserNode
     , createAudioBufferSourceNode

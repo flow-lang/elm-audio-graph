@@ -1,6 +1,25 @@
-module AudioGraph.Units exposing (DistanceModel(..), Filter(..), Oversample(..), PanningModel(..), Value(..), Waveform(..))
+module AudioGraph.Units exposing
+    ( Value(..)
+    , DistanceModel(..), Filter(..), Oversample(..), PanningModel(..), Waveform(..)
+    )
 
-{-| -}
+{-| The value of an [AudioParam](/AudioGraph#AudioParam) or [NodeProperty](/AudioGraph#NodeProperty)
+is highly context relevant. Something that is expecting frequency in hertz may produce
+very unexpected output if it receives a decibal value, even though they both represent
+`Floats`. To encode this context the [Value](#Value) union type defines all the
+possible contexts for primative types to exist in.
+
+@docs Value
+
+
+## Union Types
+
+Some values, such as `WaveformType` are better expressed as their own union type,
+rather than arbitrary string values.
+
+@docs DistanceModel, Filter, Oversample, PanningModel, Waveform
+
+-}
 
 
 {-| -}

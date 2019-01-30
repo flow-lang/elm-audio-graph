@@ -56,11 +56,11 @@ setNode id node graph =
 
 
 {-| -}
-getNode : NodeID -> AudioGraph -> AudioGraph
+getNode : NodeID -> AudioGraph -> Maybe AudioNode
 getNode id graph =
     case graph of
         AudioGraph g ->
-            AudioGraph { g | nodes = Dict.remove id g.nodes }
+            Dict.get id g.nodes
 
 
 {-| -}

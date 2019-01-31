@@ -67,6 +67,8 @@ type Msg
     | Example_0
     | Example_1
     | Example_2 Float
+    | Example_3
+    | Example_3_Reset
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -92,6 +94,24 @@ update msg model =
                 |> (\n -> Maybe.map2 (setNode "myOsc") n (Just model.graph))
                 |> Maybe.withDefault model.graph
                 |> (\g -> update BroadcastGraph { graph = g })
+
+        Example_3 ->
+            model.graph
+              |> setNode "modulator" createOscillatorNode
+              |> setNode "gain" createGainNode
+              |> removeConnection (connect "myOsc" 0 "__destination" (InputChannel 0))
+              |> addConnection (connect "modulator" 0 "gain" (InputParam "gain"))
+              |> addConnection (connect "myOsc" 0 "gain" (InputChannel 0))
+              |> addConnection (connect "gain" 0 "__destination" (InputChannel 0))
+              |> (\g -> update BroadcastGraph { graph = g })
+            
+        Example_3_Reset ->
+            model.graph
+              |> addConnection (connect "myOsc" 0 "__destination" (InputChannel 0))
+              |> removeConnection (connect "modulator" 0 "gain" (InputParam "gain"))
+              |> removeConnection (connect "myOsc" 0 "gain" (InputChannel 0))
+              |> removeConnection (connect "gain" 0 "__destination" (InputChannel 0))
+              |> (\g -> update (Example_2 0) { graph = g })
 
 
 
@@ -182,6 +202,17 @@ with that? How about we make a simple keyboard to play a C major scale?
         , button [ class "button dark", onClick (Example_2 0) ] [ text "Stop" ]
         ]
     , Markdown.toHtml [ class "content" ] """
+There's a bit more code in this example to contextualise how everything works but
+principally it is quite simple. All we want to do is update the "frequency" parameter
+of our oscillator to some different values. Because we're only updating one param
+we've been a bit lazy and just recreate the default oscillator every time. Because
+there is no mutation in a functional language there's no extra overhead in doing this,
+but it can be clearer if you grab the node by its id using `getNode` when you're updating
+a lot of params.
+
+The `setNode` function works as before, and replaces the old oscillator node with our
+new updated one.
+
 ```elm
 type alias model = AudioGraph
 
@@ -199,14 +230,14 @@ update msg model =
     UpdateFrequency freq ->
       createOscillatorNode
         |> updateParam "frequency" (Hertz freq)
-        |> (\\n -> setNode "myOsc" n model)
-        |> (\\m -> ( m, Cmd.none ))
+        |> ( \\n -> setNode "myOsc" n model )
+        |> ( \\m -> ( m, Cmd.none ) )
 
     Stop ->
       createOscillatorNode
         |> updateParam "frequency" (Hertz 0)
-        |> (\\n -> setNode "myOsc" n model)
-        |> (\\m -> ( m, Cmd.none ))
+        |> ( \\n -> setNode "myOsc" n model )
+        |> ( \\m -> ( m, Cmd.none ) )
 
 view model = 
   div []
@@ -218,5 +249,8 @@ view model =
     ]
 ```
 
+But wait, **there's more**.
 """
+    , button [ class "button", onClick Example_3 ] [ text "Run" ]
+    , button [ class "button", onClick Example_3_Reset ] [ text "Stop" ]
     ]

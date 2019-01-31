@@ -35,6 +35,17 @@ function connectNodes ({ outputNode, outputChannel, inputNode, inputDestination 
   }
 }
 
+function disconnectNodes ({ outputNode, outputChannel, inputNode, inputDestination }) {
+  switch (inputDestination.type) {
+    case "channel":
+      nodes[outputNode].disconnect(nodes[inputNode], outputChannel, inputDestination.channel)
+      break;
+    case "param":
+      nodes[outputNode].disconnect(nodes[inputNode][inputDestination.param], outputChannel)
+      break;
+  }
+}
+
 // Subscribe to the broadcastAudioPort to react to any changes in the audio graph.
 // This is absolutely crucial if we want our graph to be reactively updated in real
 // time.
@@ -74,6 +85,11 @@ app.ports.broadcastAudioGraph.subscribe(graph => {
 
       for (const connection of graph.connections)
         connectNodes(connection)
+
+      const disconnections = prevGraph.connections.filter(a => !graph.connections.some(b => JSON.stringify(a) === JSON.stringify(b)))
+
+      for (const connection of disconnections)
+        disconnectNodes(connection)
   }
 
   prevGraph = graph

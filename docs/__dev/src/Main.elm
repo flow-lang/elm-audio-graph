@@ -1,4 +1,4 @@
-port module Main exposing (..)
+port module Main exposing (main)
 
 import AudioGraph exposing (..)
 import AudioGraph.Encode exposing (encodeGraph)
@@ -53,23 +53,7 @@ type alias Model =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    let
-        graph =
-            createAudioGraph
-                |> setNode "oscA" createOscillatorNode
-                |> setNode "oscB"
-                    (createOscillatorNode
-                        |> updateParam "frequency" (Hertz 6)
-                    )
-                |> setNode "gain"
-                    (createGainNode
-                        |> updateParam "gain" (Number 0.25)
-                    )
-                |> addConnection (connect "oscA" 0 "gain" (InputChannel 0))
-                |> addConnection (connect "oscB" 0 "gain" (InputParam "gain"))
-                |> addConnection (connect "gain" 0 "__destination" (InputChannel 0))
-    in
-    update BroadcastGraph { graph = graph }
+    update BroadcastGraph { graph = createAudioGraph }
 
 
 
@@ -80,6 +64,9 @@ init _ =
 
 type Msg
     = BroadcastGraph
+    | Example_0
+    | Example_1
+    | Example_2 Float
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -87,6 +74,24 @@ update msg model =
     case msg of
         BroadcastGraph ->
             ( model, broadcastAudioGraph (encodeGraph model.graph) )
+
+        Example_0 ->
+            createAudioGraph
+                |> (\g -> update BroadcastGraph { graph = g })
+
+        Example_1 ->
+            model.graph
+                |> setNode "myOsc" createOscillatorNode
+                |> addConnection (connect "myOsc" 0 "__destination" (InputChannel 0))
+                |> (\g -> update BroadcastGraph { graph = g })
+
+        Example_2 freq ->
+            model.graph
+                |> getNode "myOsc"
+                |> Maybe.map (updateParam "frequency" (Hertz freq))
+                |> (\n -> Maybe.map2 (setNode "myOsc") n (Just model.graph))
+                |> Maybe.withDefault model.graph
+                |> (\g -> update BroadcastGraph { graph = g })
 
 
 
@@ -98,15 +103,14 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div [ class "container" ]
-        [ div [ class "row" ]
-            [ div [ class "col" ] [ content ] 
-            ]
+        [ div [ class "row section" ]
+            [ div [ class "col" ] contentA ]
         ]
 
 
-content : Html msg
-content =
-    Markdown.toHtml [ class "content" ] """
+contentA : List (Html Msg)
+contentA =
+    [ Markdown.toHtml [ class "content" ] """
 # elm-audio-graph
 
 Psst. Here to learn how to make kickass web audio apps with Elm?
@@ -119,7 +123,9 @@ import AudioGraph exposing ( createAudioGraph )
 
 graph = createAudioGraph
 ```
-
+"""
+    , button [ class "button", onClick Example_0 ] [ text "Run" ]
+    , Markdown.toHtml [ class "content" ] """
 Well that wasn't exactly Earth-shattering. To actually make some noise
 we need to create some audio nodes and connect them together. Let's start
 with a basic sine oscillator that we'll connect to our speakers.
@@ -128,7 +134,7 @@ with a basic sine oscillator that we'll connect to our speakers.
 import AudioGraph exposing
   ( createAudioGraph      -- Creates the audio graph
   , createOscillatorNode  -- Creates an oscillator node
-  , addNode               -- Adds a node to the graph
+  , setNode               -- Adds a node to the graph
   , addConnection         -- Adds a connection to the graph
   , connect               -- Creates a connection between two nodes
   , NodeInput (..)        -- Specifies what type of input to connect to
@@ -136,15 +142,18 @@ import AudioGraph exposing
 
 graph =
   createAudioGraph
-    |> addNode "myOsc" createOscillatorNode
+    |> setNode "myOsc" createOscillatorNode
     |> addConnection (connect "myOsc" 0 "__destination" (InputChannel 0))
 ```
-
+"""
+    , button [ class "button", onClick Example_1 ] [ text "Run" ]
+    , button [ class "button", onClick (Example_2 0) ] [ text "Stop" ]
+    , Markdown.toHtml [ class "content" ] """
 Now we're making some noise but we've just added a lot of
 new stuff, what does it all do?
 
 * First, we create a new audio graph as before.
-* Then, we say we want to add a node to the graph, and give
+* Then, we say we want to add a node to the graph and give
   it an id of "myOsc". The id is important because it lets
   us track changes and updates to a node.
 * We also need to supply the node we want to add. createOscillatorNode
@@ -155,4 +164,59 @@ new stuff, what does it all do?
   of the node we want to connect to. "__destination" is a special node that
   gets created for us when we call createGraph and it represents our speakers
   or some other final output for the graph.
+
+---
+
+So now we have a (slightly annoying) tone coming out our speakers. Can we do anything
+with that? How about we make a simple keyboard to play a C major scale?
 """
+    , div [ class "is-horizontal-align" ]
+        [ button [ class "button dark", onClick (Example_2 261.6) ] [ text "C" ]
+        , button [ class "button dark", onClick (Example_2 293.7) ] [ text "D" ]
+        , button [ class "button dark", onClick (Example_2 329.6) ] [ text "E" ]
+        , button [ class "button dark", onClick (Example_2 349.2) ] [ text "F" ]
+        , button [ class "button dark", onClick (Example_2 392.0) ] [ text "G" ]
+        , button [ class "button dark", onClick (Example_2 440.0) ] [ text "A" ]
+        , button [ class "button dark", onClick (Example_2 493.9) ] [ text "B" ]
+        , button [ class "button dark", onClick (Example_2 523.3) ] [ text "C" ]
+        , button [ class "button dark", onClick (Example_2 0) ] [ text "Stop" ]
+        ]
+    , Markdown.toHtml [ class "content" ] """
+```elm
+type alias model = AudioGraph
+
+init = 
+  createAudioGraph
+    |> setNode "myOsc" createOscillatorNode
+    |> addConnection (connect "myOsc" 0 "__destination" (InputChannel 0))
+
+type Msg
+  = UpdateFrequency Float
+  | Stop
+
+update msg model =
+  case msg of
+    UpdateFrequency freq ->
+      createOscillatorNode
+        |> updateParam "frequency" (Hertz freq)
+        |> (\\n -> setNode "myOsc" n model)
+        |> (\\m -> ( m, Cmd.none ))
+
+    Stop ->
+      createOscillatorNode
+        |> updateParam "frequency" (Hertz 0)
+        |> (\\n -> setNode "myOsc" n model)
+        |> (\\m -> ( m, Cmd.none ))
+
+view model = 
+  div []
+    [ button [ onClick (UpdateFrequency 261.6) ] [ text "C" ]
+    , button [ onClick (UpdateFrequency 293.7) ] [ text "D" ]
+    , ...
+    , button [ onClick (UpdateFrequency 523.3) ] [ text "C" ]
+    , button [ onClick Stop ] [ text "Stop" ]
+    ]
+```
+
+"""
+    ]

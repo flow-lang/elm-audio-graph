@@ -1,5 +1,5 @@
 import { Elm } from './Main.elm'
-import createNode from './webAudioNodes'
+import { createNode, updateNode }from './webAudioNodes'
 
 const app = Elm.Main.init()
 
@@ -9,9 +9,8 @@ const app = Elm.Main.init()
 // context accordingly.
 document.querySelector('body')
   .addEventListener('click', () => {
-    context.state !== "running"
-      ? context.resume()
-      : context.suspend()
+    if (context.state != "running")
+      context.resume()
   })
 
 // We need to vendor prefix the AudioContext constructor.
@@ -20,7 +19,7 @@ const context = new (window.AudioContext || window.webkitAudioContext)
 const nodes = {}
 // prevGraph is the last JSON graph we recieved from Elm, it starts null for
 // obvious reasons.
-const prevGraph = null
+let prevGraph = null
 
 // Simple function to connect two nodes together. The connect function signature
 // is slightly different dependent on whether you are connecting to a node or a
@@ -51,5 +50,31 @@ app.ports.broadcastAudioGraph.subscribe(graph => {
     // Iterate over the *values* in graph.connections. 
     for (const connection of graph.connections)
       connectNodes(connection)
+  } else if (JSON.stringify(prevGraph) !== JSON.stringify(graph)) {
+      // The following code is very naive. You don't want to do this in your own
+      // applications!!!
+
+      // Simply update the params and properties of an existing node
+      // and create new nodes when necessary. This will not remove old
+      // nodes and if a node's type changes nothing will happen.
+      // T H I S  I S  B A D  C O D E .
+      for (const id in graph.nodes) {
+        if (nodes[id] === undefined)
+          nodes[id] = createNode(context, graph.nodes[id])
+        else if (nodes[id].nodeType === graph.nodes[id].type)
+          nodes[id] = updateNode(nodes[id], graph.nodes[id])
+      }
+
+      for (const id in nodes) {
+        if (graph.nodes[id] === undefined) {
+          nodes[id].disconnect()
+          delete nodes[id]
+        }
+      }
+
+      for (const connection of graph.connections)
+        connectNodes(connection)
   }
+
+  prevGraph = graph
 })

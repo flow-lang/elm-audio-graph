@@ -1,4 +1,4 @@
-export default function createNode (context, opts) {
+export function createNode (context, opts) {
   switch (opts.type) {
     case "Analyser":
       return createAnalyser(context, opts)
@@ -35,6 +35,13 @@ export default function createNode (context, opts) {
     case "WaveShaper":
       return createWaveshapper(context, opts)
   }
+}
+
+export function updateNode (node, { params, properties }) {
+  params.forEach( param => node[param.label].value = param.value )
+  properties.forEach( prop => node[prop.label] = prop.value )
+
+  return node
 }
 
 const createAnalyser = (context, { type, params, properties }) => {

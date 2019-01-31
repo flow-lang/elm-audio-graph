@@ -11,6 +11,12 @@
   --font-family: "Helvetica Neue", sans-serif;
 }
 
-body {
-  padding-top: 50px;
+.section {
+  margin-top: 25px;
+  margin-bottom: 25px;
+}
+
+.button {
+  margin-top: 5px;
+  margin-bottom: 10px;
 }

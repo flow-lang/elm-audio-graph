@@ -3,7 +3,7 @@
     "name": "flowlang-cc/elm-audio-graph",
     "summary": "Construct type safe JSON audio graphs with Elm.",
     "license": "MIT",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "exposed-modules": [
         "AudioGraph",
         "AudioGraph.Units",

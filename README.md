@@ -1,3 +1,7 @@
+# Deprecated
+This package has been deprecated in favour of a new approach:
+https://github.com/pd-andy/elm-web-audio
+
 # elm-audio-graph
 
 The elm-audio-graph package provides a type-safe way of constructing Web Audio processing graphs.
